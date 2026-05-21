@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>粉丝团自定义权益</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cn-fontsource-misans-medium/font.css">
+    <style>
+        :root {
+            --canvas: #ffffff;
+            --stage: #eef2f6;
+            --text: #1d2129;
+            --text-light: #4e5969;
+            --accent: #165dff;
+            --accent-light: #e8f3ff;
+            --success: #00b42a;
+            --danger: #f53f3f;
+            --success-bg: #e8ffea;
+            --danger-bg: #ffece8;
+            --font-display: 'MiSans', 'Noto Sans SC', sans-serif;
+            --font-body: 'Noto Sans SC', sans-serif;
+        }
+        
+        /* viewport-scale.css */
+        html, body { margin: 0; padding: 0; height: 100%; overflow-x: hidden; font-family: var(--font-body); color: var(--text); }
+        html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+        body { background: var(--stage); }
+        
+        .slide {
+            width: 100vw; height: 100vh; height: 100dvh;
+            scroll-snap-align: start;
+            position: relative; display: flex;
+            align-items: center; justify-content: center;
+        }
+        
+        .slide-inner {
+            width: 1280px; height: 720px;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            position: relative;
+            transform-origin: center center;
+            display: flex; flex-direction: column;
+            padding: 60px 80px;
+            background: var(--canvas);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        /* Background decor */
+        .slide-inner::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 6px;
+            background: var(--accent);
+            z-index: 10;
+        }
+        
+        .slide-content {
+            flex: 1; display: flex; flex-direction: column;
+            position: relative;
+            z-index: 2;
+        }
+        
+        h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; }
+        
+        /* Elements */
+        .title-slide { justify-content: center; align-items: center; text-align: center; }
+        .title-slide h1 { font-size: 72px; color: var(--accent); margin-bottom: 24px; font-weight: 700; letter-spacing: 2px; }
+        .title-slide p { font-size: 28px; color: var(--text-light); max-width: 900px; line-height: 1.6; }
+        
+        .slide-header { margin-bottom: 40px; }
+        .slide-header h2 { font-size: 44px; color: var(--text); margin-bottom: 16px; font-weight: 700; }
+        .slide-header p { font-size: 22px; color: var(--text-light); }
+        
+        /* Grid Layouts */
+        .grid-6 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .card { background: #f7f9fc; border-radius: 12px; padding: 28px; border: 1px solid #e5e6eb; }
+        .card h3 { font-size: 24px; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .card p { font-size: 18px; color: var(--text-light); line-height: 1.5; }
+        
+        /* Timeline */
+        .timeline { display: flex; flex-direction: column; gap: 16px; margin-top: 10px; }
+        .timeline.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 20px; align-content: start; }
+        .tl-item { display: flex; align-items: center; background: #f7f9fc; border-radius: 12px; padding: 16px 20px; }
+        .tl-badge { background: var(--accent-light); color: var(--accent); font-family: var(--font-display); font-size: 20px; font-weight: 700; padding: 8px 16px; border-radius: 8px; min-width: 100px; text-align: center; margin-right: 24px; }
+        .tl-content { flex: 1; }
+        .tl-content h3 { font-size: 22px; margin-bottom: 6px; }
+        .tl-content p { font-size: 18px; color: var(--text-light); }
+        
+        /* Split Layout */
+        .split-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; height: 100%; }
+        .col-card { background: #f7f9fc; border-radius: 16px; padding: 32px; border-top: 4px solid var(--accent); }
+        .col-card.green { border-top-color: var(--success); background: var(--success-bg); }
+        .col-card.red { border-top-color: var(--danger); background: var(--danger-bg); }
+        .col-card h3 { font-size: 28px; margin-bottom: 24px; }
+        .col-card ul { list-style: none; padding: 0; }
+        .col-card li { font-size: 20px; line-height: 1.6; margin-bottom: 16px; display: flex; gap: 12px; }
+        .col-card li::before { content: '•'; color: var(--text-light); }
+        .col-card.green li::before { content: '✓'; color: var(--success); font-weight: 700; }
+        .col-card.red li::before { content: '✗'; color: var(--danger); font-weight: 700; }
+        
+        /* Promos */
+        .promo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .promo-card { background: #fff; border: 1px solid #e5e6eb; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+        .promo-header { background: var(--accent-light); padding: 20px 24px; }
+        .promo-header h3 { font-size: 26px; color: var(--accent); }
+        .promo-body { padding: 24px; }
+        .promo-body p { font-size: 19px; line-height: 1.6; margin-bottom: 12px; display: flex; }
+        .promo-body span.label { font-weight: 700; color: var(--text); min-width: 100px; display: inline-block; }
+        .promo-body span.val { color: var(--text-light); flex: 1; }
+
+        /* Animation */
+        .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease, transform 0.5s ease; }
+        .slide.visible .reveal { opacity: 1; transform: translateY(0); }
+        .slide.visible .reveal:nth-child(1) { transition-delay: 0.1s; }
+        .slide.visible .reveal:nth-child(2) { transition-delay: 0.2s; }
+        .slide.visible .reveal:nth-child(3) { transition-delay: 0.3s; }
+        .slide.visible .reveal:nth-child(4) { transition-delay: 0.4s; }
+        .slide.visible .reveal:nth-child(5) { transition-delay: 0.5s; }
+        .slide.visible .reveal:nth-child(6) { transition-delay: 0.6s; }
+        .slide.visible .reveal:nth-child(7) { transition-delay: 0.7s; }
+
+        /* Nav & Hint */
+        .nav-dots { position: fixed; right: 24px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 100; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(0,0,0,0.2); cursor: pointer; transition: all 0.3s; }
+        .dot.active { background: var(--accent); transform: scale(1.3); }
+        .keyboard-hint { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); font-size: 13px; color: rgba(0,0,0,0.4); z-index: 100; transition: opacity 0.5s; pointer-events: none; }
+        
+        html.is-mobile, html.is-mobile body { height: auto; overflow-x: hidden; }
+        html.is-mobile { scroll-snap-type: none; }
+        html.is-mobile .slide { width: 100vw; scroll-snap-align: none; display: block; overflow: hidden; position: relative; margin: 0 0 16px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+        html.is-mobile .slide:last-child { margin-bottom: 0; }
+        html.is-mobile .slide-inner { transform-origin: top left; position: absolute; top: 0; left: 0; border-radius: 0; }
+        html.is-mobile .nav-dots, html.is-mobile .keyboard-hint { display: none; }
+        
+        i, em, cite, address, dfn, var { font-style: normal; }
+    </style>
+</head>
+<body>
+    <nav class="nav-dots"></nav>
+
+    <!-- Slide 1 -->
+    <section class="slide">
+        <div class="slide-inner">
+            <div class="slide-content title-slide">
+                <h1 class="reveal" contenteditable="true">粉丝团自定义权益</h1>
+                <p class="reveal" contenteditable="true">区域运营培训指南：赋能不同场景主播，点燃粉丝升级动力</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 2 -->
+    <section class="slide">
+        <div class="slide-inner">
+            <div class="slide-header">
+                <h2 class="reveal" contenteditable="true">什么是自定义权益？</h2>
+                <p class="reveal" contenteditable="true">允许主播设置专属福利，提供6大图标选项，全面满足粉丝多元诉求。</p>
+            </div>
+            <div class="slide-content grid-6">
+                <div class="card reveal"><h3 contenteditable="true">🎮 游戏手柄</h3><p contenteditable="true">一起玩、组队优先</p></div>
+                <div class="card reveal"><h3 contenteditable="true">🎁 礼物盒</h3><p contenteditable="true">周边、抽奖、虚拟奖励</p></div>
+                <div class="card reveal"><h3 contenteditable="true">💬 聊天气泡</h3><p contenteditable="true">优先回复、1对1互动</p></div>
+                <div class="card reveal"><h3 contenteditable="true">🎵 音乐喇叭</h3><p contenteditable="true">点歌、专属才艺表演</p></div>
+                <div class="card reveal"><h3 contenteditable="true">👥 双人/社群</h3><p contenteditable="true">专属群聊、内侧交流圈子</p></div>
+                <div class="card reveal"><h3 contenteditable="true">▶️ 视频播放</h3><p contenteditable="true">幕后花絮、未公开内容</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 3 -->
+    <section class="slide">
+        <div class="slide-inner">
+            <div class="slide-header">
+                <h2 class="reveal" contenteditable="true">粉丝分层与升级节奏</h2>
+                <p class="reveal" contenteditable="true">结合所需升级时间，科学拉开权益梯度，创造持续的升级动力。</p>
+            </div>
+            <div class="slide-content timeline grid-2">
+                <div class="tl-item reveal">
+                    <div class="tl-badge" contenteditable="true">Lv.1-5</div>
+                    <div class="tl-content"><h3 contenteditable="true">破冰期</h3><p contenteditable="true">只需入团即可，适合低门槛互动权益</p></div>
+                </div>
+                <div class="tl-item reveal">
+                    <div class="tl-badge" contenteditable="true">Lv.10</div>
+                    <div class="tl-content"><h3 contenteditable="true">进阶期 (约7天)</h3><p contenteditable="true">解锁专属标识，适合有仪式感的核心体验</p></div>
+                </div>
+                <div class="tl-item reveal">
+                    <div class="tl-badge" contenteditable="true">Lv.20-30</div>
+                    <div class="tl-content"><h3 contenteditable="true">核心期 (14-25天)</h3><p contenteditable="true">解锁进场特效，适合 1V1 互动或独家内容</p></div>
+                </div>
+                <div class="tl-item reveal">
+                    <div class="tl-badge" contenteditable="true">Lv.40-50</div>
+                    <div class="tl-content"><h3 contenteditable="true">忠诚期 (38-52天)</h3><p contenteditable="true">解锁顶级标识，适合高价值实体或稀有福利</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 4 -->
+    <section class="slide">
+        <div class="slide-inner">
+            <div class="slide-header">
+                <h2 class="reveal" contenteditable="true">场景策略：音乐类主播</h2>
+                <p class="reveal" contenteditable="true">粉丝核心诉求是专属表演与交流。层层递进的粉丝运营路径：</p>
+            </div>
+            <div class="slide-content timeline grid-2">
+                <div class="tl-item reveal" style="padding: 12px 20px;">
+                    <div class="tl-badge" contenteditable="true">Lv.1</div>
+                    <div class="tl-content"><h3 style="font-size:18px;margin-bottom:4px;" contenteditable="true">加入粉丝群聊</h3><p style="font-size:16px;" contenteditable="true">建立交流根据地</p></div>
+                </div>
+                <div class="tl-item reveal" style="padding: 12px 20px;">
+                    <div class="tl-badge" contenteditable="true">Lv.5</div>
+                    <div class="tl-content"><h3 style="font-size:18px;margin-bottom:4px;" contenteditable="true">直播间点歌</h3><p style="font-size:16px;" contenteditable="true">满足最核心直接诉求</p></div>
+                </div>
+                <div class="tl-item reveal" style="padding: 12px 20px;">
+                    <div class="tl-badge" contenteditable="true">Lv.10</div>
+                    <div class="tl-content"><h3 style="font-size:18px;margin-bottom:4px;" contenteditable="true">专属才艺/翻唱</h3><p style="font-size:16px;" contenteditable="true">提供高价值正反馈</p></div>
+                </div>
+                <div class="tl-item reveal" style="padding: 12px 20px;">
+                    <div class="tl-badge" contenteditable="true">Lv.20</div>
+                    <div class="tl-content"><h3 style="font-size:18px;margin-bottom:4px;" contenteditable="true">优先回复评论</h3><p style="font-size:16px;" contenteditable="true">VIP级 1V1 互动特权</p></div>
+                </div>
+                <div class="tl-item reveal" style="padding: 12px 20px;">
+                    <div class="tl-badge" contenteditable="true">Lv.30</div>
+                    <div class="tl-content"><h3 style="font-size:18px;margin-bottom:4px;" contenteditable="true">专属花絮视频</h3><p style="font-size:16px;" contenteditable="true">制造“圈内人”归属感</p></div>
+                </div>
+                <div class="tl-item reveal" style="padding: 12px 20px;">
+                    <div class="tl-badge" contenteditable="true">Lv.40</div>
+                    <div class="tl-content"><h3 style="font-size:18px;margin-bottom:4px;" contenteditable="true">签名周边福利</h3><p style="font-size:16px;" contenteditable="true">实体奖励最高忠诚度变现</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 5 -->
+    <section class="slide">
+        <div class="slide-inner">
+            <div class="slide-header">
+                <h2 class="reveal" contenteditable="true">场景策略：游戏类主播</h2>
+                <p class="reveal" contenteditable="true">游戏粉最渴望一起开黑以及影响主播内容。进阶指南：</p>
+            </div>
+            <div class="slide-content timeline grid-2">
+                <div class="tl-item reveal" style="padding: 12px 20px;">
+                    <div class="tl-badge" contenteditable="true">Lv.1</div>
+                    <div class="tl-content"><h3 style="font-size:18px;margin-bottom:4px;" contenteditable="true">专属开黑群聊</h3><p style="font-size:16px;" contenteditable="true">即刻获得归属感</p></div>
+                </div>
+                <div class="tl-item reveal" style="padding: 12px 20px;">
+                    <div class="tl-badge" contenteditable="true">Lv.5</div>
+                    <div class="tl-content"><h3 style="font-size:18px;margin-bottom:4px;" contenteditable="true">建议下一款游戏</h3><p style="font-size:16px;" contenteditable="true">低成本高价值的内容共创感</p></div>
+                </div>
+                <div class="tl-item reveal" style="padding: 12px 20px;">
+                    <div class="tl-badge" contenteditable="true">Lv.10</div>
+                    <div class="tl-content"><h3 style="font-size:18px;margin-bottom:4px;" contenteditable="true">优先上车/开黑权</h3><p style="font-size:16px;" contenteditable="true">游戏粉的终极追求</p></div>
+                </div>
+                <div class="tl-item reveal" style="padding: 12px 20px;">
+                    <div class="tl-badge" contenteditable="true">Lv.20</div>
+                    <div class="tl-content"><h3 style="font-size:18px;margin-bottom:4px;" contenteditable="true">每周固定水友赛席位</h3><p style="font-size:16px;" contenteditable="true">建立长期活跃的习惯回路</p></div>
+                </div>
+                <div class="tl-item reveal" style="padding: 12px 20px;">
+                    <div class="tl-badge" contenteditable="true">Lv.30</div>
+                    <div class="tl-content"><h3 style="font-size:18px;margin-bottom:4px;" contenteditable="true">专属高光时刻视频</h3><p style="font-size:16px;" contenteditable="true">未公开操作带来强烈特权感</p></div>
+                </div>
+                <div class="tl-item reveal" style="padding: 12px 20px;">
+                    <div class="tl-badge" contenteditable="true">Lv.50</div>
+                    <div class="tl-content"><h3 style="font-size:18px;margin-bottom:4px;" contenteditable="true">稀有游戏内道具/CDK</h3><p style="font-size:16px;" contenteditable="true">顶级支持者的究极犒赏</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 6 -->
+    <section class="slide">
+        <div class="slide-inner">
+            <div class="slide-header">
+                <h2 class="reveal" contenteditable="true">场景策略：聊天/生活类主播</h2>
+                <p class="reveal" contenteditable="true">建立强情感纽带，满足渴望更近距离的私人联系与日常跟进。</p>
+            </div>
+            <div class="slide-content timeline grid-2">
+                <div class="tl-item reveal" style="padding: 12px 20px;">
+                    <div class="tl-badge" contenteditable="true">Lv.1</div>
+                    <div class="tl-content"><h3 style="font-size:18px;margin-bottom:4px;" contenteditable="true">建议直播话题</h3><p style="font-size:16px;" contenteditable="true">粉丝直接参与内容共创</p></div>
+                </div>
+                <div class="tl-item reveal" style="padding: 12px 20px;">
+                    <div class="tl-badge" contenteditable="true">Lv.5</div>
+                    <div class="tl-content"><h3 style="font-size:18px;margin-bottom:4px;" contenteditable="true">核心粉丝专属群</h3><p style="font-size:16px;" contenteditable="true">建立内部小圈子情感纽带</p></div>
+                </div>
+                <div class="tl-item reveal" style="padding: 12px 20px;">
+                    <div class="tl-badge" contenteditable="true">Lv.10</div>
+                    <div class="tl-content"><h3 style="font-size:18px;margin-bottom:4px;" contenteditable="true">多嘉宾连麦优先</h3><p style="font-size:16px;" contenteditable="true">最高级别的实时互动体验</p></div>
+                </div>
+                <div class="tl-item reveal" style="padding: 12px 20px;">
+                    <div class="tl-badge" contenteditable="true">Lv.20</div>
+                    <div class="tl-content"><h3 style="font-size:18px;margin-bottom:4px;" contenteditable="true">私信优先回复</h3><p style="font-size:16px;" contenteditable="true">建立 1V1 深度私人联系</p></div>
+                </div>
+                <div class="tl-item reveal" style="padding: 12px 20px;">
+                    <div class="tl-badge" contenteditable="true">Lv.30</div>
+                    <div class="tl-content"><h3 style="font-size:18px;margin-bottom:4px;" contenteditable="true">专属日常动态</h3><p style="font-size:16px;" contenteditable="true">生活 Vlog，满足粉丝窥探欲</p></div>
+                </div>
+                <div class="tl-item reveal" style="padding: 12px 20px;">
+                    <div class="tl-badge" contenteditable="true">Lv.40</div>
+                    <div class="tl-content"><h3 style="font-size:18px;margin-bottom:4px;" contenteditable="true">每月粉丝抽奖</h3><p style="font-size:16px;" contenteditable="true">维持高等级玩家的长期活跃</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 7 -->
+    <section class="slide">
+        <div class="slide-inner">
+            <div class="slide-header">
+                <h2 class="reveal" contenteditable="true">场景策略：新人/中小主播</h2>
+                <p class="reveal" contenteditable="true">"Start simple, grow with your community." 从低门槛零成本做起，积累首批铁杆支持者。</p>
+            </div>
+            <div class="slide-content timeline">
+                <div class="tl-item reveal">
+                    <div class="tl-badge" contenteditable="true">Lv.1</div>
+                    <div class="tl-content"><h3 contenteditable="true">建议直播话题</h3><p contenteditable="true">零成本，给新粉丝留下来互动的理由</p></div>
+                </div>
+                <div class="tl-item reveal">
+                    <div class="tl-badge" contenteditable="true">Lv.5</div>
+                    <div class="tl-content"><h3 contenteditable="true">专属口播感谢</h3><p contenteditable="true">发挥中小主播“人情味”优势，制造感动</p></div>
+                </div>
+                <div class="tl-item reveal">
+                    <div class="tl-badge" contenteditable="true">Lv.10</div>
+                    <div class="tl-content"><h3 contenteditable="true">内测核心群聊</h3><p contenteditable="true">建立专属小圈子，沉淀最核心粉丝资产</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 8 -->
+    <section class="slide">
+        <div class="slide-inner">
+            <div class="slide-header">
+                <h2 class="reveal" contenteditable="true">权益推广工具与使用时机</h2>
+                <p class="reveal" contenteditable="true">光设置还不够，主动推广才能拉动转化。巧妙利用直播间常驻及触发工具。</p>
+            </div>
+            <div class="slide-content promo-grid">
+                <div class="promo-card reveal">
+                    <div class="promo-header"><h3 contenteditable="true">📌 Pin Card (置顶卡)</h3></div>
+                    <div class="promo-body">
+                        <p><span class="label" contenteditable="true">展示频次:</span> <span class="val" contenteditable="true">每 3 分钟展示一次，持续 30 秒</span></p>
+                        <p><span class="label" contenteditable="true">展示内容:</span> <span class="val" contenteditable="true">权益图标 + 名称 + 描述 + 按钮</span></p>
+                        <p><span class="label" contenteditable="true">用户交互:</span> <span class="val" contenteditable="true">非团员点击加团；团员点击查看</span></p>
+                        <p><span class="label" contenteditable="true">最佳时机:</span> <span class="val" contenteditable="true">直播人气巅峰、互动高潮环节</span></p>
+                    </div>
+                </div>
+                <div class="promo-card reveal">
+                    <div class="promo-header"><h3 contenteditable="true">🏷️ Sticker (直播间贴纸)</h3></div>
+                    <div class="promo-body">
+                        <p><span class="label" contenteditable="true">展示频次:</span> <span class="val" contenteditable="true">常驻直播间画面</span></p>
+                        <p><span class="label" contenteditable="true">展示内容:</span> <span class="val" contenteditable="true">“成为粉丝解锁专属福利”</span></p>
+                        <p><span class="label" contenteditable="true">用户交互:</span> <span class="val" contenteditable="true">用户可随时点击了解并加入</span></p>
+                        <p><span class="label" contenteditable="true">最佳时机:</span> <span class="val" contenteditable="true">全程陪伴，持续带来自然转化</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 9 -->
+    <section class="slide">
+        <div class="slide-inner">
+            <div class="slide-header">
+                <h2 class="reveal" contenteditable="true">最佳实践：Do's & Don'ts</h2>
+                <p class="reveal" contenteditable="true">引导主播科学设置，确保转化效率，避免粉丝流失与客诉风险。</p>
+            </div>
+            <div class="slide-content split-2">
+                <div class="col-card green reveal">
+                    <h3 contenteditable="true">建议做法 (Do's)</h3>
+                    <ul>
+                        <li contenteditable="true">善用模板: 引导主播从系统推荐模板起步</li>
+                        <li contenteditable="true">拉开梯度: 在Lv.1、Lv.10等设置权益制造动力</li>
+                        <li contenteditable="true">主动推广: 在直播间高光时刻勤用 Pin Card</li>
+                        <li contenteditable="true">说到做到: 设置力所能及的权益，兑现承诺</li>
+                    </ul>
+                </div>
+                <div class="col-card red reveal">
+                    <h3 contenteditable="true">错误做法 (Don'ts)</h3>
+                    <ul>
+                        <li contenteditable="true">挤在一层: 所有权益设在同等级，失去升级动力</li>
+                        <li contenteditable="true">描述模糊: 避免“特殊福利”，用词要具体清晰</li>
+                        <li contenteditable="true">忽视低层: 没有 Lv.1 福利，粉丝没有入团动机</li>
+                        <li contenteditable="true">逃避审核: 含有违规内容导致审核驳回无法上线</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 10 -->
+    <section class="slide">
+        <div class="slide-inner">
+            <div class="slide-content title-slide">
+                <h1 class="reveal" contenteditable="true">开启专属粉丝经营</h1>
+                <p class="reveal" contenteditable="true">点燃粉丝升级动力，助力主播长效变现</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="keyboard-hint">使用 ↑↓ 方向键翻页</div>
+
+    <script>
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.dots = document.querySelector('.nav-dots');
+                this.current = 0;
+                this.setupObserver();
+                this.setupKeyboard();
+                this.setupDots();
+                this.hideHintOnScroll();
+            }
+            setupObserver() {
+                const obs = new IntersectionObserver(entries => {
+                    entries.forEach(e => {
+                        if (e.isIntersecting) {
+                            e.target.classList.add('visible');
+                            this.current = [...this.slides].indexOf(e.target);
+                            this.updateDots();
+                        }
+                    });
+                }, { threshold: 0.5 });
+                this.slides.forEach(s => obs.observe(s));
+            }
+            setupKeyboard() {
+                window.addEventListener('keydown', e => {
+                    // Prevent default scrolling for arrow keys if not editing text
+                    if (e.target.isContentEditable) return;
+                    
+                    if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+                        e.preventDefault(); this.go(this.current + 1);
+                    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                        e.preventDefault(); this.go(this.current - 1);
+                    }
+                });
+            }
+            setupDots() {
+                this.slides.forEach((s, i) => {
+                    const dot = document.createElement('div');
+                    dot.className = 'dot';
+                    dot.onclick = () => this.go(i);
+                    this.dots.appendChild(dot);
+                });
+                this.updateDots();
+            }
+            updateDots() {
+                this.dots.querySelectorAll('.dot').forEach((d, i) => {
+                    d.classList.toggle('active', i === this.current);
+                });
+            }
+            go(i) {
+                if (i >= 0 && i < this.slides.length) {
+                    this.slides[i].scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+            hideHintOnScroll() {
+                const hint = document.querySelector('.keyboard-hint');
+                if (!hint) return;
+                let hidden = false;
+                window.addEventListener('scroll', () => {
+                    if (!hidden && window.scrollY > 50) {
+                        hint.style.opacity = '0';
+                        hidden = true;
+                    }
+                });
+            }
+        }
+        
+        class ScaleController {
+            constructor(refWidth = 1280, refHeight = 720) {
+                this.refW = refWidth;
+                this.refH = refHeight;
+                this.isMobile = /iPhone|iPod|Android.*Mobile|BlackBerry|IEMobile|Opera Mini|webOS/i.test(navigator.userAgent);
+                if (this.isMobile) document.documentElement.classList.add('is-mobile');
+                this.slides = document.querySelectorAll('.slide');
+                this.inners = document.querySelectorAll('.slide-inner');
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                window.addEventListener('orientationchange', () => this.resize());
+            }
+            resize() {
+                if (this.isMobile) {
+                    const s = window.innerWidth / this.refW;
+                    const scaledH = this.refH * s;
+                    this.inners.forEach(inner => { inner.style.transform = `scale(${s})`; });
+                    this.slides.forEach(slide => { slide.style.height = `${scaledH}px`; });
+                    return;
+                }
+                const s = Math.min(window.innerWidth / this.refW, window.innerHeight / this.refH);
+                this.inners.forEach(inner => { inner.style.transform = `scale(${s})`; });
+            }
+        }
+        
+        new SlidePresentation();
+        new ScaleController();
+    </script>
+</body>
+</html>
